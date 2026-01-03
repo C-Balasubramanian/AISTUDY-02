@@ -42,9 +42,9 @@ const app = express();
 
 // CORS configuration with multiple allowed origins
 const allowedOrigins = [
-    process.env.WEBSITE_URL || 'http://localhost:4173',
+    process.env.WEBSITE_URL || 'http://aistudy-xi.vercel.app',
     'http://localhost:5173',
-    'http://localhost:4173',
+    'http://aistudy-xi.vercel.app',
     'http://localhost:3000',
     'http://localhost:5001',
     'http://127.0.0.1:5173',

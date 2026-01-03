@@ -45,7 +45,7 @@ const app = express();
 const allowedOrigins = [
     process.env.WEBSITE_URL || 'https://aicourse.agli.in',
     'http://localhost:5173',
-    'http://localhost:4173',
+    'http://aistudy-xi.vercel.app',
     'http://localhost:3000',
     'http://localhost:5001',
     'http://127.0.0.1:5173',
