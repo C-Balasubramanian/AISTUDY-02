@@ -5704,11 +5704,15 @@ app.post('/api/admin/upgrade-user', async (req, res) => {
 // app.get('*', (req, res) => {
 //     res.sendFile(path.join(__dirname, '../dist/index.html'));
 // });
-app.use(express.static(path.join(__dirname, 'frontend/dist')));
+// app.use(express.static(path.join(__dirname, 'frontend/dist')));
 
-app.use((req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend/dist/index.html'));
+// app.use((req, res) => {
+//   res.sendFile(path.join(__dirname, 'frontend/dist/index.html'));
+// });
+app.get('/', (req, res) => {
+  res.json({ status: 'Backend API running 🚀' });
 });
+
 
 //LISTEN
 app.listen(PORT, () => {
