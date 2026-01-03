@@ -1,0 +1,13 @@
+# common
+node_modules
+.env
+.env.local
+.env.production
+
+# logs
+*.log
+debug_*
+server_debug.log
+
+# uploads
+uploads/
