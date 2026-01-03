@@ -49,7 +49,7 @@ const Login = () => {
     // This is where you would integrate authentication logic
     try {
       // Simulate authentication delay
-      const postURL = serverURL + '/api/signin';
+      const postURL = serverURL + '/signin';
       const response = await axios.post(postURL, { email, password });
       if (response.data.success) {
         sessionStorage.setItem('email', response.data.userData.email);
