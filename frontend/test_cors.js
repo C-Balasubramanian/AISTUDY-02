@@ -6,7 +6,7 @@ const options = {
   path: '/api/signin',
   method: 'OPTIONS',
   headers: {
-    Origin: 'http://aistudy-xi.vercel.app',
+    Origin: 'https://aistudy-xi.vercel.app',
     'Access-Control-Request-Method': 'POST',
     'Access-Control-Request-Headers': 'Content-Type'
   }

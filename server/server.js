@@ -43,7 +43,7 @@
 // const allowedOrigins = [
 //     process.env.WEBSITE_URL || 'http://traininglabs.in/server',
 //     'http://localhost:5173',
-//     'http://aistudy-xi.vercel.app',
+//     'https://aistudy-xi.vercel.app',
 //     'http://localhost:3000',
 //     'http://localhost:5001',
 //     'http://127.0.0.1:5173',
@@ -151,7 +151,7 @@
 //     vpName: { type: String, default: 'Mr. Ananda raj' },
 //     vpSignature: { type: String, default: '' }, // Base64
 //     logo: { type: String, default: '' }, // Base64
-//     qrCodeUrl: { type: String, default: 'http://aistudy-xi.vercel.app/verify-certificate' }
+//     qrCodeUrl: { type: String, default: 'https://aistudy-xi.vercel.app/verify-certificate' }
 // });
 
 
@@ -2857,7 +2857,7 @@ const app = express();
 const allowedOrigins = [
     process.env.WEBSITE_URL || 'https://aistudy-xi.vercel.app',
     'https://aistudy-xi.vercel.app',
-    'http://aistudy-xi.vercel.app',
+    'https://aistudy-xi.vercel.app',
     'http://localhost:3000',
     'http://localhost:5001',
     'http://127.0.0.1:5173',
