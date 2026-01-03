@@ -3344,39 +3344,33 @@ app.post('/api/prompt', async (req, res) => {
 // });
 app.post('/api/generate', async (req, res) => {
   try {
-    console.log("Request body:", req.body);
+    const { prompt } = req.body;
 
-    if (!req.body || !req.body.prompt) {
+    if (!prompt) {
       return res.status(400).json({ message: "Prompt is required" });
     }
 
     if (!process.env.API_KEY) {
-      throw new Error("API_KEY is missing in environment variables");
+      throw new Error("API_KEY not set in environment");
     }
 
     const model = genAI.getGenerativeModel({
       model: "gemini-flash-latest",
-      safetySettings
+      safetySettings,
     });
 
-    const result = await model.generateContent(req.body.prompt);
+    const result = await model.generateContent(prompt);
     const response = result.response;
-    const txt = await response.text();
+    const text = await response.text();
 
-    const converter = new showdown.Converter();
-    const html = converter.makeHtml(txt);
-
-    res.status(200).json({ text: html });
+    res.status(200).json({ text });
 
   } catch (error) {
-    console.error("🔥 Generate API Error:", {
-      message: error.message,
-      stack: error.stack
-    });
+    console.error("🔥 /api/generate error:", error);
 
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 });

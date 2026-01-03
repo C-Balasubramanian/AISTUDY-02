@@ -500,51 +500,84 @@ app.post('/api/prompt', async (req, res) => {
 
 //GET GENERATE THEORY
 
+// app.post('/api/generate', async (req, res) => {
+//     const receivedData = req.body;
+
+//     const promptString = receivedData.prompt;
+
+//     const safetySettings = [
+//         {
+//             category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+//             threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+//         },
+//         {
+//             category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+//             threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+//         },
+//         {
+//             category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+//             threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+//         },
+//         {
+//             category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+//             threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+//         },
+//     ];
+
+//     const model = genAI.getGenerativeModel({ model: "gemini-flash-latest", safetySettings });
+
+//     const prompt = promptString
+
+//     await model.generateContent(prompt).then(result => {
+//         const response = result.response;
+//         const txt = response.text();
+//         const converter = new showdown.Converter();
+//         const markdownText = txt;
+//         const text = converter.makeHtml(markdownText);
+//         res.status(200).json({ text });
+//     }).catch(error => {
+//         console.log('Error generating content:', error);
+//         res.status(500).json({
+//             success: false,
+//             message: 'Internal server error: ' + (error.message || String(error)),
+//             error: error.toString()
+//         });
+//     })
+
+// });
 app.post('/api/generate', async (req, res) => {
-    const receivedData = req.body;
+  try {
+    const { prompt } = req.body;
 
-    const promptString = receivedData.prompt;
+    if (!prompt) {
+      return res.status(400).json({ message: "Prompt is required" });
+    }
 
-    const safetySettings = [
-        {
-            category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-            threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-        },
-        {
-            category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-            threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-        },
-        {
-            category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-            threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-        },
-        {
-            category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-            threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-        },
-    ];
+    if (!process.env.API_KEY) {
+      throw new Error("API_KEY not set in environment");
+    }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest", safetySettings });
+    const model = genAI.getGenerativeModel({
+      model: "gemini-flash-latest",
+      safetySettings,
+    });
 
-    const prompt = promptString
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const text = await response.text();
 
-    await model.generateContent(prompt).then(result => {
-        const response = result.response;
-        const txt = response.text();
-        const converter = new showdown.Converter();
-        const markdownText = txt;
-        const text = converter.makeHtml(markdownText);
-        res.status(200).json({ text });
-    }).catch(error => {
-        console.log('Error generating content:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Internal server error: ' + (error.message || String(error)),
-            error: error.toString()
-        });
-    })
+    res.status(200).json({ text });
 
+  } catch (error) {
+    console.error("🔥 /api/generate error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
 });
+
 
 //GET IMAGE
 app.post('/api/image', async (req, res) => {
