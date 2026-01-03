@@ -3,7 +3,7 @@ export const appName = 'AiCourse';
 export const companyName = 'Aicourse by traininglabs';
 export const websiteURL = 'https://aistudy-xi.vercel.app';
 export const serverURL = import.meta.env.PROD
-  ? 'https://aistudy-xi.vercel.app/api'
+  ? 'https://aistudy-xi.vercel.app'
   : 'https://aistudy-backend-nine.vercel.app';
 export const appLogo = '/logo.png';
 export const razorpayEnabled = true;
