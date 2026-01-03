@@ -2855,8 +2855,8 @@ const app = express();
 
 // CORS configuration with multiple allowed origins
 const allowedOrigins = [
-    process.env.WEBSITE_URL || 'http://traininglabs.in/server',
-    'http://localhost:5173',
+    process.env.WEBSITE_URL || 'https://aistudy-xi.vercel.app',
+    'https://aistudy-xi.vercel.app',
     'http://localhost:4173',
     'http://localhost:3000',
     'http://localhost:5001',
