@@ -5844,12 +5844,48 @@ app.use(express.json({ limit: '50mb' }));
 // } else {
 //     console.error('CRITICAL: MONGODB_URI is undefined. Database connection skipped.');
 // }
+// MongoDB connection with better error handling and reconnection
 if (process.env.MONGODB_URI) {
-    mongoose.connect(process.env.MONGODB_URI)
-        .then(() => console.log('MongoDB connected successfully'))
-        .catch(err => console.error('MongoDB connection error:', err));
+    mongoose.connect(process.env.MONGODB_URI, {
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 45000,
+    })
+    .then(() => {
+        console.log('✅ MongoDB connected successfully');
+        
+        // Test the connection
+        mongoose.connection.db.admin().ping()
+            .then(() => console.log('✅ MongoDB ping successful'))
+            .catch(err => console.error('❌ MongoDB ping failed:', err));
+    })
+    .catch(err => {
+        console.error('❌ MongoDB connection error:', err);
+        // Don't crash the app, but log the error
+    });
+    
+    // Handle connection events
+    mongoose.connection.on('error', err => {
+        console.error('❌ MongoDB connection error:', err);
+    });
+    
+    mongoose.connection.on('disconnected', () => {
+        console.log('⚠️ MongoDB disconnected. Attempting to reconnect...');
+        setTimeout(() => {
+            if (process.env.MONGODB_URI) {
+                mongoose.connect(process.env.MONGODB_URI);
+            }
+        }, 5000);
+    });
+    
+    mongoose.connection.on('reconnected', () => {
+        console.log('✅ MongoDB reconnected');
+    });
+    
+    mongoose.connection.on('reconnectFailed', () => {
+        console.error('❌ MongoDB reconnect failed');
+    });
 } else {
-    console.error('CRITICAL: MONGODB_URI is undefined. Database connection skipped.');
+    console.error('❌ CRITICAL: MONGODB_URI is undefined.');
 }
 
 const transporter = nodemailer.createTransport({
@@ -6084,31 +6120,101 @@ app.post('/api/signup', async (req, res) => {
 });
 
 //SIGNIN
+
+// app.post('/api/signin', async (req, res) => {
+//     const { email, password } = req.body;
+
+//     try {
+//         const user = await User.findOne({ email });
+
+//         if (!user) {
+//             return res.json({ success: false, message: 'Invalid email or password' });
+//         }
+
+//         if (password === user.password) {
+//             return res.json({ success: true, message: 'SignIn Successful', userData: user });
+//         }
+
+//         res.json({ success: false, message: 'Invalid email or password' });
+
+//     } catch (error) {
+//         console.error('Signin Error Details:', {
+//             message: error.message,
+//             stack: error.stack,
+//             name: error.name
+//         });
+//         res.status(500).json({ success: false, message: 'Invalid email or password', error: error.message });
+//     }
+
+// });
+//SIGNIN - UPDATED VERSION
 app.post('/api/signin', async (req, res) => {
     const { email, password } = req.body;
 
+    // Validate input
+    if (!email || !password) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Email and password are required' 
+        });
+    }
+
     try {
+        // Check if MongoDB is connected
+        if (mongoose.connection.readyState !== 1) {
+            console.error('MongoDB not connected');
+            return res.status(503).json({ 
+                success: false, 
+                message: 'Database connection error. Please try again later.' 
+            });
+        }
+
         const user = await User.findOne({ email });
 
         if (!user) {
-            return res.json({ success: false, message: 'Invalid email or password' });
+            return res.status(401).json({ 
+                success: false, 
+                message: 'Invalid email or password' 
+            });
         }
 
+        // Simple password comparison (consider using bcrypt in production)
         if (password === user.password) {
-            return res.json({ success: true, message: 'SignIn Successful', userData: user });
+            // Remove sensitive data before sending
+            const userData = user.toObject();
+            delete userData.password;
+            delete userData.resetPasswordToken;
+            delete userData.resetPasswordExpires;
+            
+            return res.json({ 
+                success: true, 
+                message: 'SignIn Successful', 
+                userData 
+            });
         }
 
-        res.json({ success: false, message: 'Invalid email or password' });
+        res.status(401).json({ 
+            success: false, 
+            message: 'Invalid email or password' 
+        });
 
     } catch (error) {
-        console.error('Signin Error Details:', {
-            message: error.message,
-            stack: error.stack,
-            name: error.name
+        console.error('Signin Error:', error);
+        
+        // Provide more specific error messages
+        let errorMessage = 'Internal server error';
+        let statusCode = 500;
+        
+        if (error.name === 'MongoError' || error.name === 'MongooseError') {
+            errorMessage = 'Database error. Please try again later.';
+            statusCode = 503;
+        }
+        
+        res.status(statusCode).json({ 
+            success: false, 
+            message: errorMessage 
         });
-        res.status(500).json({ success: false, message: 'Invalid email or password', error: error.message });
     }
-
 });
 
 //SIGNINSOCIAL
@@ -8942,43 +9048,68 @@ if (!process.env.VERCEL) {
     // The "catchall" handler: for any request that doesn't
     // match one above, send back React's index.html file.
     // Health check endpoint with detailed DB status
-    app.get('/api/health', async (req, res) => {
-        let dbStatus = 'disconnected';
-        let error = null;
+    // app.get('/api/health', async (req, res) => {
+    //     let dbStatus = 'disconnected';
+    //     let error = null;
 
-        try {
-            if (mongoose.connection.readyState === 1) {
-                dbStatus = 'connected';
-            } else if (mongoose.connection.readyState === 2) {
-                dbStatus = 'connecting';
-            } else {
-                // Try to reconnect if disconnected
-                if (process.env.MONGODB_URI) {
-                    await mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-                    dbStatus = 'reconnected';
-                } else {
-                    dbStatus = 'no_uri_configured';
-                }
-            }
-        } catch (err) {
-            dbStatus = 'error';
-            error = err.message;
-            console.error('Health check DB error:', err);
+    //     try {
+    //         if (mongoose.connection.readyState === 1) {
+    //             dbStatus = 'connected';
+    //         } else if (mongoose.connection.readyState === 2) {
+    //             dbStatus = 'connecting';
+    //         } else {
+    //             // Try to reconnect if disconnected
+    //             if (process.env.MONGODB_URI) {
+    //                 await mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+    //                 dbStatus = 'reconnected';
+    //             } else {
+    //                 dbStatus = 'no_uri_configured';
+    //             }
+    //         }
+    //     } catch (err) {
+    //         dbStatus = 'error';
+    //         error = err.message;
+    //         console.error('Health check DB error:', err);
+    //     }
+
+    //     res.json({
+    //         status: 'running',
+    //         mongodb: dbStatus,
+    //         readyState: mongoose.connection.readyState,
+    //         error: error,
+    //         env: {
+    //             hasMongoURI: !!process.env.MONGODB_URI,
+    //             nodeEnv: process.env.NODE_ENV
+    //         },
+    //         timestamp: new Date().toISOString()
+    //     });
+    // });
+// Health check endpoint
+app.get('/health', async (req, res) => {
+    const health = {
+        uptime: process.uptime(),
+        timestamp: Date.now(),
+        database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+        memory: process.memoryUsage(),
+        environment: process.env.NODE_ENV || 'development'
+    };
+    
+    try {
+        // Test database connection
+        if (mongoose.connection.readyState === 1) {
+            await mongoose.connection.db.admin().ping();
+            health.database = 'connected and responsive';
+            return res.json({ status: 'healthy', ...health });
+        } else {
+            health.database = 'disconnected';
+            return res.status(503).json({ status: 'unhealthy', ...health });
         }
-
-        res.json({
-            status: 'running',
-            mongodb: dbStatus,
-            readyState: mongoose.connection.readyState,
-            error: error,
-            env: {
-                hasMongoURI: !!process.env.MONGODB_URI,
-                nodeEnv: process.env.NODE_ENV
-            },
-            timestamp: new Date().toISOString()
-        });
-    });
-
+    } catch (error) {
+        health.database = 'error';
+        health.error = error.message;
+        return res.status(503).json({ status: 'unhealthy', ...health });
+    }
+});
     // app.get('*', (req, res) => {
     //     res.sendFile(path.join(__dirname, '../dist/index.html'));
     // });
