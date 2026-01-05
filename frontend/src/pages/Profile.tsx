@@ -22,6 +22,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useNavigate } from 'react-router-dom';
+import TestimonialSubmission from '@/components/TestimonialSubmission';
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -325,10 +326,11 @@ const Profile = () => {
         <Card className="md:col-span-2">
           <CardContent className="p-0">
             <Tabs defaultValue="account" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="account">Account</TabsTrigger>
                 <TabsTrigger value="notifications">Settings</TabsTrigger>
                 <TabsTrigger onClick={() => getDetails()} value="billing">Billing</TabsTrigger>
+                <TabsTrigger value="testimonial">Testimonial</TabsTrigger>
               </TabsList>
 
               <TabsContent value="account" className="p-6">
@@ -491,6 +493,10 @@ const Profile = () => {
                     </Card>
                   }
                 </div>
+              </TabsContent>
+
+              <TabsContent value="testimonial" className="p-6">
+                <TestimonialSubmission />
               </TabsContent>
             </Tabs>
           </CardContent>

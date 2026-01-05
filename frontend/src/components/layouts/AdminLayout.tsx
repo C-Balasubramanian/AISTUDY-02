@@ -30,6 +30,7 @@ import {
   FileEdit,
   FileSliders,
   Award,
+  Tag,
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
@@ -130,6 +131,15 @@ const AdminLayout = () => {
               </SidebarMenuItem>
 
               <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Pricing Management" isActive={isActive('/admin/pricing')}>
+                  <Link to="/admin/pricing" className={cn(isActive('/admin/pricing') && "text-primary")}>
+                    <Tag />
+                    <span>Pricing</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip="Admins" isActive={isActive('/admin/admins')}>
                   <Link to="/admin/admins" className={cn(isActive('/admin/admins') && "text-primary")}>
                     <UserCog />
@@ -143,6 +153,15 @@ const AdminLayout = () => {
                   <Link to="/admin/contacts" className={cn(isActive('/admin/contacts') && "text-primary")}>
                     <MessageSquare />
                     <span>Contacts</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Testimonials" isActive={isActive('/admin/testimonials')}>
+                  <Link to="/admin/testimonials" className={cn(isActive('/admin/testimonials') && "text-primary")}>
+                    <MessageSquare />
+                    <span>Testimonials</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
