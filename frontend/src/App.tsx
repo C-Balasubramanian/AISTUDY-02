@@ -42,6 +42,7 @@ import AdminCancellation from "./pages/admin/AdminCancellation";
 import AdminRefund from "./pages/admin/AdminRefund";
 import AdminSubscriptionBilling from "./pages/admin/AdminSubscriptionBilling";
 import AdminCreateBlog from "./pages/admin/AdminCreateBlog";
+import AdminPricing from "./pages/admin/AdminPricing";
 import AdminTestimonials from "./pages/admin/AdminTestimonials";
 import SubscriptionBillingPolicy from "./pages/SubscriptionBillingPolicy";
 import RefundPolicy from "./pages/RefundPolicy";
@@ -122,6 +123,7 @@ const App = () => (
                   <Route index element={<AdminDashboard />} />
                   <Route path="users" element={<AdminUsers />} />
                   <Route path="courses" element={<AdminCourses />} />
+                  <Route path="pricing" element={<AdminPricing />} />
                   <Route path="paid-users" element={<AdminPaidUsers />} />
                   <Route path="admins" element={<AdminAdmins />} />
                   <Route path="contacts" element={<AdminContacts />} />
