@@ -860,54 +860,137 @@ const CoursePage = () => {
   //     }
   //   }
   // }
+  const normalize = (s: string) =>
+  s.toLowerCase().replace(/\s+/g, ' ').trim();
+
 async function redirectExam() {
   if (isLoading) return;
 
-  setIsLoading(true);
-
-  const key = mainTopic?.toLowerCase();
-  const mainTopicExam = key ? jsonData?.[key] : undefined;
-
-  if (!Array.isArray(mainTopicExam)) {
-    setIsLoading(false);
+  if (!jsonData?.course_topics || !Array.isArray(jsonData.course_topics)) {
+    console.error('Invalid course_topics:', jsonData);
     toast({
       title: "Error",
-      description: "Topics not available yet. Please try again.",
+      description: "Course data not loaded",
     });
     return;
   }
 
-  let subtopicsString = '';
-  mainTopicExam.forEach((topicTemp) => {
-    subtopicsString += `, ${topicTemp.title}`;
-  });
-
-  try {
-    const postURL = serverURL + '/api/aiexam';
-    const response = await axios.post(postURL, {
-      courseId,
-      mainTopic,
-      subtopicsString,
-      lang,
-    });
-
-    if (response.data.success) {
-      const questions = JSON.parse(response.data.message);
-      navigate(`/course/${courseId}/quiz`, {
-        state: { topic: mainTopic, courseId, questions },
-      });
-    } else {
-      throw new Error("API failed");
-    }
-  } catch (err) {
+  if (!mainTopic) {
+    console.error('mainTopic missing');
     toast({
       title: "Error",
-      description: "Internal Server Error",
+      description: "Main topic not selected",
+    });
+    return;
+  }
+
+  // ✅ Collect ALL subtopics from ALL chapters
+  const allSubtopics = jsonData.course_topics.flatMap((topic: any) =>
+    Array.isArray(topic.subtopics) ? topic.subtopics : []
+  );
+
+  if (!allSubtopics.length) {
+    console.error('No subtopics found:', jsonData.course_topics);
+    toast({
+      title: "Error",
+      description: "No subtopics available for exam",
+    });
+    return;
+  }
+
+  // ✅ Build subtopics string
+  const subtopicsString = allSubtopics
+    .map((sub: any) => sub.title)
+    .join(', ');
+
+  setIsLoading(true);
+
+  try {
+    const response = await axios.post(
+      `${serverURL}/api/aiexam`,
+      {
+        courseId,
+        mainTopic,          // "REACT"
+        subtopicsString,    // all React subtopics
+        lang,
+      }
+    );
+
+    if (!response.data?.success) {
+      throw new Error('API failed');
+    }
+
+    const questions = JSON.parse(response.data.message);
+
+    navigate(`/course/${courseId}/quiz`, {
+      state: {
+        topic: mainTopic,
+        courseId,
+        questions,
+      },
+    });
+  } catch (error) {
+    console.error('redirectExam error:', error);
+    toast({
+      title: "Error",
+      description: "Failed to generate exam",
     });
   } finally {
     setIsLoading(false);
   }
 }
+
+
+
+
+// async function redirectExam() {
+//   if (isLoading) return;
+
+//   setIsLoading(true);
+
+//   const key = mainTopic?.toLowerCase();
+//   const mainTopicExam = key ? jsonData?.[key] : undefined;
+
+//   if (!Array.isArray(mainTopicExam)) {
+//     setIsLoading(false);
+//     toast({
+//       title: "Error",
+//       description: "Topics not available yet. Please try again.",
+//     });
+//     return;
+//   }
+
+//   let subtopicsString = '';
+//   mainTopicExam.forEach((topicTemp) => {
+//     subtopicsString += `, ${topicTemp.title}`;
+//   });
+
+//   try {
+//     const postURL = serverURL + '/api/aiexam';
+//     const response = await axios.post(postURL, {
+//       courseId,
+//       mainTopic,
+//       subtopicsString,
+//       lang,
+//     });
+
+//     if (response.data.success) {
+//       const questions = JSON.parse(response.data.message);
+//       navigate(`/course/${courseId}/quiz`, {
+//         state: { topic: mainTopic, courseId, questions },
+//       });
+//     } else {
+//       throw new Error("API failed");
+//     }
+//   } catch (err) {
+//     toast({
+//       title: "Error",
+//       description: "Internal Server Error",
+//     });
+//   } finally {
+//     setIsLoading(false);
+//   }
+// }
 
   const renderTopicsList = (topics) => {
     if (!topics || !Array.isArray(topics)) return null;

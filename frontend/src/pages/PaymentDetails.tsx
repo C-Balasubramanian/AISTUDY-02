@@ -1,7 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation  } from 'react-router-dom';
 import {
   Card,
   CardContent,
@@ -127,10 +127,20 @@ const PaymentDetails = () => {
   const navigate = useNavigate();
   const [paymentMethod, setPaymentMethod] = useState<string>('paypal');
   const [isProcessing, setIsProcessing] = useState(false);
+  const location = useLocation();
+const state = location.state as any;
 
-  const plan = planId && plans[planId as keyof typeof plans]
-    ? plans[planId as keyof typeof plans]
-    : { name: 'Unknown Plan', price: 0 };
+const plan = {
+  name: state?.planName || 'Unknown Plan',
+  price: state?.price || 0,
+  currency: state?.currency || 'USD',
+  planType: state?.planType || planId
+};
+
+  // const plan = planId && plans[planId as keyof typeof plans]
+
+  //   ? plans[planId as keyof typeof plans]
+  //   : { name: 'Unknown Plan', price: 0 };
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -539,9 +549,10 @@ const PaymentDetails = () => {
     <div className="container max-w-5xl mx-auto py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">Complete Your Purchase</h1>
-        <p className="text-muted-foreground">
-          You're upgrading to the {plan.name}
-        </p>
+       <p className="text-muted-foreground">
+  You're upgrading to the {plan.name}
+</p>
+
       </div>
 
       <div className="grid md:grid-cols-3 gap-8">
@@ -743,6 +754,7 @@ const PaymentDetails = () => {
                         <p className="text-center">
                           You'll be redirected to paystack to complete your purchase securely.
                         </p>
+                        
                       </div>
                     </TabsContent>
 
@@ -762,7 +774,9 @@ const PaymentDetails = () => {
                     className="w-full bg-primary"
                     disabled={isProcessing}
                   >
-                    {isProcessing ? "Processing..." : `Pay $${plan.price}`}
+                    {/* {isProcessing ? "Processing..." : `Pay $${plan.price}`} */}
+                    {isProcessing ? "Processing..." : `Pay ${plan.currency} ${plan.price}`}
+
                   </Button>
                 </CardFooter>
               </Card>
@@ -779,14 +793,16 @@ const PaymentDetails = () => {
             <CardContent className="space-y-4">
               <div className="flex justify-between">
                 <span className="font-medium">{plan.name}</span>
-                <span>${plan.price}</span>
+           <span>{plan.currency} {plan.price}</span>
+
               </div>
 
               <Separator />
 
               <div className="flex justify-between font-bold">
                 <span>Total</span>
-                <span>${plan.price}</span>
+             <span>{plan.currency} {plan.price}</span>
+
               </div>
 
               <div className="bg-muted/50 p-4 rounded-lg mt-6">
